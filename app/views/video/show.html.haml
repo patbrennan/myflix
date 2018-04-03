@@ -1,0 +1,15 @@
+.row
+  %figure.col-xs-8
+    %img{src: "http://via.placeholder.com/665x375"}
+  
+  .col-xs-4
+    %p  <strong>#{@video.title}</strong>
+    %hr
+    %p= @video.description
+    %br
+    
+    .row
+      .col-xs-6
+        %button.btn.btn-primary Watch Now
+      .col-xs-6.text-right
+        %button.btn + My Queue
