@@ -1,7 +1,7 @@
 class CategoriesController < ApplicationController
   def show
     @category = Category.find(params[:id])
-    @videos = @category.recent_category_videos
+    @videos = @category.recent_videos
   end
 
   def recent

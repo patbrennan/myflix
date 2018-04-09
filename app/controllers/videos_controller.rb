@@ -1,4 +1,10 @@
 class VideosController < ApplicationController
+  before_action :require_user, except: [:front]
+
+  def front
+    redirect_to home_path if logged_in?
+  end
+
   def index
     @categories = Category.all.includes(:videos)
   end

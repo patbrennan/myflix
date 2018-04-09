@@ -1,13 +1,16 @@
 class Category < ActiveRecord::Base
-  has_many :videos, -> { order("title") }
+  has_many :videos, -> { order("created_at DESC") }
 
   # Most recent of all videos
   def self.recent_videos
-    Video.all.limit(6).order("created_at DESC")
+    Video.all.order(created_at: :desc).limit(6)
   end
 
   # Most recent videos in a single category
-  def recent_category_videos
-    self.videos.limit(6).order(created_at: :desc)
+  def recent_videos
+    videos = self.videos
+
+    return [] unless videos
+    videos.first(6)
   end
 end

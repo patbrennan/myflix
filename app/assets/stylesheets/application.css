@@ -11,6 +11,7 @@
  *= require_self
  *= require bootstrap
  *= require whitespace-reset
+ *= require rails_bootstrap_forms
  *= require_tree .
 */
 
@@ -25,4 +26,26 @@ h2 {
 
 h3 {
   font-size: 20px;
+}
+
+.container.white-background {
+  text-align: center;
+  background-color: ghostwhite;
+  padding: 30px 20px;
+}
+
+.container.form-group {
+  width: 75%;
+  background-color: ghostwhite;
+  padding: 30px 50px;
+}
+
+.red {
+  color: darkred;
+}
+
+.alert-error {
+  background: #d3b1b7;
+  border: 1px solid darkred;
+  color: darkred;
 }

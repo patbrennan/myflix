@@ -1,7 +1,10 @@
 - @categories.each do |category|
+  - recents = category.recent_videos
+  - next if recents.empty?
+
   .videos.row
     %h2= link_to category.name, category_path(category)
-    - category.videos.each do |video|
+    - recents.each do |video|
       .video.col-sm-2
         = link_to video_path(video) do
           %img{src: "#{video.small_cover_url}", title: video.title}
