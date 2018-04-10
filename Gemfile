@@ -23,7 +23,7 @@ group :development, :test do
   gem 'pry'
   gem 'pry-nav'
   gem 'rspec-rails', '2.99'
-  gem 'fabricator'
+  # gem 'fabrication', '~> 2.9'
   gem 'faker'
 end
 
