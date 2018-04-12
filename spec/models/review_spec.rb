@@ -8,4 +8,6 @@ describe Review do
   it { should validate_inclusion_of(:rating).in_array([1, 2, 3, 4, 5]) }
 
   it "doesn't save when rating is < 1 or > 5"
+
+
 end
