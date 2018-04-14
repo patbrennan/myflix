@@ -3,13 +3,30 @@ require 'spec_helper'
 describe VideosController do
 
   describe "GET show" do
-    it "sets @video variable if user authenticated" do
-      vid = Video.create(title: Faker::Book.title, description: Faker::Lorem.paragraph)
-      user = User.create(email: Faker::Internet.email, password: "123456", full_name: Faker::Name.name)
-      session[:user_id] = user.id
+    context "has authenticated user" do
+      let(:vid) { Video.create(title: Faker::Book.title, description: Faker::Lorem.paragraph) }
+      let(:user) { User.create(email: Faker::Internet.email, password: "123456", full_name: Faker::Name.name) }
 
-      get :show, id: vid.id
-      expect(assigns(:video)).to eq(vid)
+      it "sets @video variable if user authenticated" do
+        session[:user_id] = user.id
+
+        get :show, id: vid.id
+        expect(assigns(:video)).to eq(vid)
+      end
+
+      it "sets @video variable if user authenticated" do
+        session[:user_id] = user.id
+
+        get :show, id: vid.id
+        expect(assigns(:video)).to eq(vid)
+      end
+
+      it "sets the @reviews variable" do
+        rev1 = Review.create(rating: 4, description: "Some review text", user: user, video: vid)
+        rev2 = Review.create(rating: 3, description: "The description of why it's 3", user: user, video: vid)
+
+        expect(vid.reviews) =~ [rev1, rev2] # doesn't have to match order
+      end
     end
 
     it "redirects user to the login page when unauthenticated" do

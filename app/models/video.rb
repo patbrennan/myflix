@@ -11,6 +11,6 @@ class Video < ActiveRecord::Base
 
   def avg_rating
     reviews = self.reviews
-    self.reviews.average(:rating).to_f
+    self.reviews.average(:rating).to_f.round(1)
   end
 end
