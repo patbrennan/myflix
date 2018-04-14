@@ -1,15 +1,38 @@
-.row
-  %figure.col-xs-8
-    %img{src: "http://via.placeholder.com/665x375", title: @video.title}
+.container.white-background
+  .row
+    %figure.col-xs-8
+      %img{src: "http://via.placeholder.com/665x375", title: @video.title}
 
-  .col-xs-4
-    %p  <strong>#{@video.title}</strong>
-    %hr
-    %p= @video.description
-    %br
+    .col-xs-4
+      %h4  #{@video.title}
+      %p Rating: #{@video.avg_rating} / 5.0
+      %hr
+      %p= @video.description
+      %br
 
-    .row
-      .col-xs-6
-        %button.btn.btn-primary Watch Now
-      .col-xs-6.text-right
-        %button.btn + My Queue
+      .row
+        .col-xs-6
+          %button.btn.btn-primary Watch Now
+        .col-xs-6.text-right
+          %button.btn + My Queue
+
+%hr
+
+.container
+  .row
+    .col-sm-10.col-sm-offset-1
+      - if logged_in?
+        = bootstrap_form_for [@video, @review] do |f|
+          %fieldset
+            .form-group
+              .row
+                .col-sm-3
+                  = f.select :rating, [["5 stars", 5], ["4 stars", 4], ["3 stars", 3], ["2 stars", 2], ["1 star", 1]], control_class: "form-control"
+            %br
+            .form-group
+              .row.col-sm-8
+                = f.text_area :description, placeholder: "tell us what you think...", label: "Write Your Review:", rows: 6
+          %fieldset.form-group.actions.clearfix
+            = f.submit "Submit", class: "btn btn-primary"
+
+      = render "shared/reviews", reviews: @reviews

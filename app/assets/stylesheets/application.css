@@ -29,13 +29,11 @@ h3 {
 }
 
 .container.white-background {
-  text-align: center;
   background-color: ghostwhite;
   padding: 30px 20px;
 }
 
 .container.form-group {
-  width: 75%;
   background-color: ghostwhite;
   padding: 30px 50px;
 }
@@ -48,4 +46,10 @@ h3 {
   background: #d3b1b7;
   border: 1px solid darkred;
   color: darkred;
+}
+
+article.review {
+  border-top: 1px solid lightgray;
+  margin-top: 15px;
+  padding-top: 15px;
 }

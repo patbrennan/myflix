@@ -27,4 +27,25 @@ describe Video do
       expect(Video.search_by_title("")).to eq([])
     end
   end
+
+  describe "#avg_rating" do
+    context "one video" do
+      let(:video) { Video.create(title: "Ghostbusters", description: "Some description", created_at: 1.day.ago) }
+
+      it "returns zero if no reviews found" do
+        expect(video.avg_rating).to eq(0)
+      end
+
+      it "returns the value of the rating if only 1 review" do
+        review = Review.create(rating: 4, description: "Just a review", video: video)
+        expect(video.avg_rating).to eq(4.0)
+      end
+
+      it "returns avg rating with 1 decimal place when multiple reviews" do
+        review = Review.create(rating: 4, description: "Just a review", video: video)
+        review = Review.create(rating: 5, description: "Review me", video: video)
+        expect(video.avg_rating).to eq(4.5)
+      end
+    end
+  end
 end
