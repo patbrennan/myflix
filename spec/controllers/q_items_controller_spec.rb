@@ -114,13 +114,24 @@ describe QItemsController do
         user2 = User.create(email: Faker::Internet.email, password: "123456", full_name: Faker::Name.name)
         new_user_q_item = QItem.create(video: vid1, user: user2, position: 1)
 
-        delete :destroy, id: new_user_q_item
+        delete :destroy, id: new_user_q_item.id
         expect(user2.q_items.size).to eq(1)
       end
 
       it "redirects to my_queue_path if q_item doesn't exist" do
         delete :destroy, id: 99
         expect(response).to redirect_to my_queue_path
+      end
+
+      it "normalizes remaining q_items positions" do
+        vid2 = Video.create(title: Faker::Book.name, description: Faker::Lorem.sentence, category_id: cat1.id)
+        vid3 = Video.create(title: Faker::Book.name, description: Faker::Lorem.sentence, category_id: cat1.id)
+        q_item1 = QItem.create(video: vid1, user: user, position: 1)
+        q_item2 = QItem.create(video: vid2, user: user, position: 2)
+        q_item3 = QItem.create(video: vid3, user: user, position: 3)
+
+        delete :destroy, id: q_item2.id
+        expect(user.q_items.last.position).to eq(2)
       end
     end
 
@@ -139,6 +150,130 @@ describe QItemsController do
         delete :destroy, id: q_item.id
         expect(response).to redirect_to login_path
       end
+    end
+  end
+
+  describe "POST update_q" do
+    context "with valid inputs" do
+      let(:user) { User.create(email: Faker::Internet.email, password: "password", full_name: Faker::Name.name) }
+      let(:cat1) { Category.create(name: "Horror") }
+      let(:vid1) { Video.create(title: Faker::Book.title, description: Faker::Lorem.sentence, category_id: cat1.id) }
+      let(:vid2) { Video.create(title: Faker::Book.title, description: Faker::Lorem.sentence, category_id: cat1.id) }
+      before { session[:user_id] = user.id }
+
+      it "redirects to my_q page" do
+        q_item1 = QItem.create(video: vid1, user: user, position: 1)
+        q_item2 = QItem.create(video: vid2, user: user, position: 2)
+
+        post :update_q, q_items: [
+          {id: q_item1.id, position: 2},
+          {id: q_item2.id, position: 1}
+        ]
+        expect(response).to redirect_to my_queue_path
+      end
+
+      it "reorders the q_items" do
+        q_item1 = QItem.create(video: vid1, user: user, position: 1)
+        q_item2 = QItem.create(video: vid2, user: user, position: 2)
+
+        post :update_q, q_items: [
+          {id: q_item1.id, position: 2},
+          {id: q_item2.id, position: 1}
+        ]
+        expect(user.q_items).to eq([q_item2, q_item1])
+      end
+
+      it "normalizes the position numbers" do
+        q_item1 = QItem.create(video: vid1, user: user, position: 1)
+        q_item2 = QItem.create(video: vid2, user: user, position: 2)
+
+        post :update_q, q_items: [
+          {id: q_item1.id, position: 3},
+          {id: q_item2.id, position: 2}
+        ]
+        expect(user.q_items.map(&:position)).to eq([1, 2])
+      end
+    end
+
+    context "with INVALID inputs" do
+      let(:user) { User.create(email: Faker::Internet.email, password: "password", full_name: Faker::Name.name) }
+      let(:cat1) { Category.create(name: "Horror") }
+      let(:vid1) { Video.create(title: Faker::Book.title, description: Faker::Lorem.sentence, category_id: cat1.id) }
+      let(:vid2) { Video.create(title: Faker::Book.title, description: Faker::Lorem.sentence, category_id: cat1.id) }
+      before { session[:user_id] = user.id }
+
+      it "redirects to my_queue page" do
+        q_item1 = QItem.create(video: vid1, user: user, position: 1)
+        q_item2 = QItem.create(video: vid2, user: user, position: 2)
+
+        post :update_q, q_items: [
+          {id: q_item1.id, position: 3.7},
+          {id: q_item2.id, position: 2}
+        ]
+        expect(response).to redirect_to my_queue_path
+      end
+
+      it "sets the flash error message" do
+        q_item1 = QItem.create(video: vid1, user: user, position: 1)
+        q_item2 = QItem.create(video: vid2, user: user, position: 2)
+
+        post :update_q, q_items: [
+          {id: q_item1.id, position: 3.7},
+          {id: q_item2.id, position: 2}
+        ]
+        expect(flash[:error]).to be_present
+      end
+
+      it "does not change q_items in db" do
+        q_item1 = QItem.create(video: vid1, user: user, position: 1)
+        q_item2 = QItem.create(video: vid2, user: user, position: 2)
+
+        post :update_q, q_items: [
+          {id: q_item1.id, position: 3},
+          {id: q_item2.id, position: 2.1}
+        ]
+        expect(q_item1.reload.position).to eq(1) # requires reload to properly eval
+      end
+    end
+
+    context "with unauthenticated users" do
+      let(:user) { User.create(email: Faker::Internet.email, password: "password", full_name: Faker::Name.name) }
+      let(:cat1) { Category.create(name: "Horror") }
+      let(:vid1) { Video.create(title: Faker::Book.title, description: Faker::Lorem.sentence, category_id: cat1.id) }
+      let(:vid2) { Video.create(title: Faker::Book.title, description: Faker::Lorem.sentence, category_id: cat1.id) }
+
+      it "redirects to login path" do
+        q_item1 = QItem.create(video: vid1, user: user, position: 1)
+        q_item2 = QItem.create(video: vid2, user: user, position: 2)
+
+        post :update_q, q_items: [
+          {id: q_item1.id, position: 2},
+          {id: q_item2.id, position: 1}
+        ]
+        expect(response).to redirect_to login_path
+      end
+    end
+
+    context "with q items NOT belonging to current user" do
+      let(:user) { User.create(email: Faker::Internet.email, password: "password", full_name: Faker::Name.name) }
+      let(:user2) { User.create(email: Faker::Internet.email, password: "123456", full_name: Faker::Name.name) }
+      let(:cat1) { Category.create(name: "Horror") }
+      let(:vid1) { Video.create(title: Faker::Book.title, description: Faker::Lorem.sentence, category_id: cat1.id) }
+      let(:vid2) { Video.create(title: Faker::Book.title, description: Faker::Lorem.sentence, category_id: cat1.id) }
+      before { session[:user_id] = user.id }
+
+      it "does not change the q_items" do
+        q_item1 = QItem.create(video: vid1, user: user2, position: 1)
+        q_item2 = QItem.create(video: vid2, user: user, position: 2)
+
+        post :update_q, q_items: [
+          {id: q_item1.id, position: 2},
+          {id: q_item2.id, position: 1}
+        ]
+        expect(q_item1.reload.position).to eq(1)
+      end
+
+
     end
   end
 end
