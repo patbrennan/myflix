@@ -19,9 +19,8 @@ describe UsersController do
         expect(User.count).to eq(1)
       end
 
-      it "redirects to login_path" do
-        post :create, user: { email: "me@me.com", password: "123456", full_name: "Patrick B" }
-        expect(response).to redirect_to login_path
+      it_behaves_like "require_user" do
+        let(:action) { post :create, user: { email: "me@me.com", password: "123456", full_name: "Patrick B" } }
       end
     end
 

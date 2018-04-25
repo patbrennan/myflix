@@ -16,24 +16,19 @@
                 %th(width="15%") Remove
             %tbody
               - @q_items.each do |q_item|
+                - video = q_item.video
+                - category = video.category
                 %tr
                   = hidden_field_tag "q_items[][id]", q_item.id
                   %td
-                    = text_field_tag "q_items[][position]", q_item.position
+                    = text_field_tag "q_items[][position]", q_item.position, class: "form-control", data: {video_id: video.id}
                   %td
-                    - video = q_item.video
                     = link_to "#{video.title}", video_path(video)
                   %td
                     = button_to "Play", nil, class: "btn btn-default"
                   %td
-                    %select.form-group(name="rating")
-                      %option(value="5") 5 Stars
-                      %option(value="4") 4 Stars
-                      %option(value="3") 3 Stars
-                      %option(value="2") 2 Stars
-                      %option(value="1") 1 Star
+                    = select_tag "q_items[][rating]", options_for_select(options_for_video_reviews, current_user_rating(video)), include_blank: true, class: "form-control"
                   %td
-                    - category = video.category
                     = link_to "#{category.name}", category_path(video, category)
                   %td
                     = link_to q_item_path(q_item), method: :delete do

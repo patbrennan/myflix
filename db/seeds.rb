@@ -101,3 +101,28 @@ Video.create([
     created_at: 7.days.ago
   }
 ])
+
+User.create([
+  {
+    email: "av8r85@gmail.com",
+    password: "pat321",
+    full_name: "Patrick B"
+  },
+  {
+    email: Faker::Internet.email,
+    password: "password",
+    full_name: Faker::Name.name
+  }
+])
+
+videos = Video.all
+users = User.all
+
+20.times do
+  Review.create({
+    video_id: videos.sample.id,
+    user_id: users.sample.id,
+    rating: rand(5) + 1,
+    description: Faker::Lorem.paragraph
+  })
+end

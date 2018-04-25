@@ -4,15 +4,15 @@ describe QItemsController do
 
   describe "GET index" do
     context "with authenticated user" do
-      let(:user) { User.create(email: Faker::Internet.email, password: "password", full_name: Faker::Name.name) }
+      let(:user) { create_user }
       let(:cat1) { Category.create(name: "Horror") }
       let(:cat2) { Category.create(name: "Comedy") }
-      let(:vid1) { Video.create(title: Faker::Book.name, description: Faker::Lorem.sentence, category_id: cat1.id) }
-      let(:vid2) { Video.create(title: Faker::Book.name, description: Faker::Lorem.sentence, category_id: cat2.id) }
-      let(:q1) { QItem.create(user_id: user.id, video_id: vid1.id, position: 1) }
-      let(:q2) { QItem.create(user_id: user.id, video_id: vid2.id, position: 2) }
+      let(:vid1) { create_video(Faker::Book.name, Faker::Lorem.sentence, cat1) }
+      let(:vid2) { create_video(Faker::Book.name, Faker::Lorem.sentence, cat2) }
+      let(:q1) { create_q_item(user, vid1, 1) }
+      let(:q2) { create_q_item(user, vid2, 2) }
 
-      before { session[:user_id] = user.id }
+      before { set_current_user }
 
       it "renders index template" do
         get :index
@@ -26,20 +26,19 @@ describe QItemsController do
     end
 
     context "NO authentication" do
-      it "redirects to login page" do
-        get :index
-        expect(response).to redirect_to login_path
+      it_behaves_like "require_user" do
+        let(:action) { get :index }
       end
     end
   end
 
   describe "POST create" do
     context "with authenticated user" do
-      let(:user) { User.create(email: Faker::Internet.email, password: "password", full_name: Faker::Name.name) }
-      let(:cat1) { Category.create(name: "Horror") }
-      let(:vid1) { Video.create(title: Faker::Book.name, description: Faker::Lorem.sentence, category_id: cat1.id) }
+      let(:user) { create_user }
+      let(:cat1) { create_category }
+      let(:vid1) { create_video(Faker::Book.name, Faker::Lorem.sentence, cat1) }
 
-      before { session[:user_id] = user.id }
+      before { set_current_user }
 
       it "redirects to my-queue page" do
         post :create, video_id: vid1.id, user_id: user.id
@@ -54,7 +53,7 @@ describe QItemsController do
       it "adds q_item to the end of q" do
         position = 1
         10.times do
-          vid = Video.create(title: Faker::Book.name, description: Faker::Lorem.sentence, category: cat1)
+          vid = create_video(Faker::Book.name, Faker::Lorem.sentence, cat1)
           QItem.create(user_id: user.id, video_id: vid.id, position: position)
           position += 1
         end
@@ -76,13 +75,12 @@ describe QItemsController do
     end
 
     context "NO authentication" do
-      let(:user) { User.create(email: Faker::Internet.email, password: "password", full_name: Faker::Name.name) }
+      let(:user) { create_user }
       let(:cat1) { Category.create(name: "Horror") }
-      let(:vid1) { Video.create(title: Faker::Book.name, description: Faker::Lorem.sentence, category_id: cat1.id) }
+      let(:vid1) { create_video(Faker::Book.name, Faker::Lorem.sentence, cat1) }
 
-      it "redirects to login_path" do
-        post :create, video_id: vid1.id, user_id: user.id
-        expect(response).to redirect_to login_path
+      it_behaves_like "require_user" do
+        let(:action) { post :create, video_id: vid1.id, user_id: user.id }
       end
 
       it "does NOT create q_item" do
@@ -94,11 +92,11 @@ describe QItemsController do
 
   describe "DELETE destroy" do
     context "with authenticated user" do
-      let(:user) { User.create(email: Faker::Internet.email, password: "password", full_name: Faker::Name.name) }
+      let(:user) { create_user }
       let(:cat1) { Category.create(name: "Horror") }
-      let(:vid1) { Video.create(title: Faker::Book.name, description: Faker::Lorem.sentence, category_id: cat1.id) }
+      let(:vid1) { create_video(Faker::Book.name, Faker::Lorem.sentence, cat1) }
       let(:q_item) { QItem.create(video: vid1, user: user, position: 1) }
-      before { session[:user_id] = user.id }
+      before { set_current_user }
 
       it "removes the q_item from db" do
         delete :destroy, id: q_item.id
@@ -111,7 +109,7 @@ describe QItemsController do
       end
 
       it "does NOT delete a different user's queue item" do
-        user2 = User.create(email: Faker::Internet.email, password: "123456", full_name: Faker::Name.name)
+        user2 = create_user
         new_user_q_item = QItem.create(video: vid1, user: user2, position: 1)
 
         delete :destroy, id: new_user_q_item.id
@@ -124,8 +122,8 @@ describe QItemsController do
       end
 
       it "normalizes remaining q_items positions" do
-        vid2 = Video.create(title: Faker::Book.name, description: Faker::Lorem.sentence, category_id: cat1.id)
-        vid3 = Video.create(title: Faker::Book.name, description: Faker::Lorem.sentence, category_id: cat1.id)
+        vid2 = create_video(Faker::Book.name, Faker::Lorem.sentence, cat1)
+        vid3 = create_video(Faker::Book.name, Faker::Lorem.sentence, cat1)
         q_item1 = QItem.create(video: vid1, user: user, position: 1)
         q_item2 = QItem.create(video: vid2, user: user, position: 2)
         q_item3 = QItem.create(video: vid3, user: user, position: 3)
@@ -136,9 +134,9 @@ describe QItemsController do
     end
 
     context "NO authentication" do
-      let(:user) { User.create(email: Faker::Internet.email, password: "password", full_name: Faker::Name.name) }
+      let(:user) { create_user }
       let(:cat1) { Category.create(name: "Horror") }
-      let(:vid1) { Video.create(title: Faker::Book.name, description: Faker::Lorem.sentence, category_id: cat1.id) }
+      let(:vid1) { create_video(Faker::Book.name, Faker::Lorem.sentence, cat1) }
       let(:q_item) { QItem.create(video: vid1, user: user, position: 1) }
 
       it "does NOT remove the q_item from the user's q" do
@@ -146,20 +144,19 @@ describe QItemsController do
         expect(user.q_items.size).to eq(1)
       end
 
-      it "redirects to login path" do
-        delete :destroy, id: q_item.id
-        expect(response).to redirect_to login_path
+      it_behaves_like "require_user" do
+        let(:action) { delete :destroy, id: q_item.id }
       end
     end
   end
 
   describe "POST update_q" do
     context "with valid inputs" do
-      let(:user) { User.create(email: Faker::Internet.email, password: "password", full_name: Faker::Name.name) }
+      let(:user) { create_user }
       let(:cat1) { Category.create(name: "Horror") }
-      let(:vid1) { Video.create(title: Faker::Book.title, description: Faker::Lorem.sentence, category_id: cat1.id) }
-      let(:vid2) { Video.create(title: Faker::Book.title, description: Faker::Lorem.sentence, category_id: cat1.id) }
-      before { session[:user_id] = user.id }
+      let(:vid1) { create_video(Faker::Book.name, Faker::Lorem.sentence, cat1) }
+      let(:vid2) { create_video(Faker::Book.name, Faker::Lorem.sentence, cat1) }
+      before { set_current_user }
 
       it "redirects to my_q page" do
         q_item1 = QItem.create(video: vid1, user: user, position: 1)
@@ -196,11 +193,11 @@ describe QItemsController do
     end
 
     context "with INVALID inputs" do
-      let(:user) { User.create(email: Faker::Internet.email, password: "password", full_name: Faker::Name.name) }
+      let(:user) { create_user }
       let(:cat1) { Category.create(name: "Horror") }
-      let(:vid1) { Video.create(title: Faker::Book.title, description: Faker::Lorem.sentence, category_id: cat1.id) }
-      let(:vid2) { Video.create(title: Faker::Book.title, description: Faker::Lorem.sentence, category_id: cat1.id) }
-      before { session[:user_id] = user.id }
+      let(:vid1) { create_video(Faker::Book.name, Faker::Lorem.sentence, cat1) }
+      let(:vid2) { create_video(Faker::Book.name, Faker::Lorem.sentence, cat1) }
+      before { set_current_user }
 
       it "redirects to my_queue page" do
         q_item1 = QItem.create(video: vid1, user: user, position: 1)
@@ -237,10 +234,10 @@ describe QItemsController do
     end
 
     context "with unauthenticated users" do
-      let(:user) { User.create(email: Faker::Internet.email, password: "password", full_name: Faker::Name.name) }
+      let(:user) { create_user }
       let(:cat1) { Category.create(name: "Horror") }
-      let(:vid1) { Video.create(title: Faker::Book.title, description: Faker::Lorem.sentence, category_id: cat1.id) }
-      let(:vid2) { Video.create(title: Faker::Book.title, description: Faker::Lorem.sentence, category_id: cat1.id) }
+      let(:vid1) { create_video(Faker::Book.name, Faker::Lorem.sentence, cat1) }
+      let(:vid2) { create_video(Faker::Book.name, Faker::Lorem.sentence, cat1) }
 
       it "redirects to login path" do
         q_item1 = QItem.create(video: vid1, user: user, position: 1)
@@ -250,17 +247,16 @@ describe QItemsController do
           {id: q_item1.id, position: 2},
           {id: q_item2.id, position: 1}
         ]
-        expect(response).to redirect_to login_path
       end
     end
 
     context "with q items NOT belonging to current user" do
-      let(:user) { User.create(email: Faker::Internet.email, password: "password", full_name: Faker::Name.name) }
-      let(:user2) { User.create(email: Faker::Internet.email, password: "123456", full_name: Faker::Name.name) }
+      let(:user) { create_user }
+      let(:user2) { create_user }
       let(:cat1) { Category.create(name: "Horror") }
-      let(:vid1) { Video.create(title: Faker::Book.title, description: Faker::Lorem.sentence, category_id: cat1.id) }
-      let(:vid2) { Video.create(title: Faker::Book.title, description: Faker::Lorem.sentence, category_id: cat1.id) }
-      before { session[:user_id] = user.id }
+      let(:vid1) { create_video(Faker::Book.name, Faker::Lorem.sentence, cat1) }
+      let(:vid2) { create_video(Faker::Book.name, Faker::Lorem.sentence, cat1) }
+      before { set_current_user }
 
       it "does not change the q_items" do
         q_item1 = QItem.create(video: vid1, user: user2, position: 1)
@@ -272,8 +268,7 @@ describe QItemsController do
         ]
         expect(q_item1.reload.position).to eq(1)
       end
-
-
     end
   end
+
 end

@@ -13,7 +13,7 @@ class Video < ActiveRecord::Base
     self.reviews.average(:rating).to_f.round(1)
   end
 
-  def in_q?(user, video_id)
-    user.q_items.any? { |q_item| q_item.video_id == video_id.to_i }
+  def in_q?(user)
+    user.q_items.any? { |q_item| q_item.video_id == self.id.to_i }
   end
 end

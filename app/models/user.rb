@@ -17,4 +17,8 @@ class User < ActiveRecord::Base
       q_item.update(position: i + 1)
     end
   end
+
+  def has_queued(video)
+    self.q_items.map(&:video).include?(video)
+  end
 end
