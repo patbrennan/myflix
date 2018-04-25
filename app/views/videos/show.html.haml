@@ -14,7 +14,8 @@
         .col-xs-6
           %button.btn.btn-primary Watch Now
         .col-xs-6.text-right
-          %button.btn + My Queue
+          - if logged_in? && !@video.in_q?(current_user)
+            = link_to "+ My Queue", q_items_path(video_id: @video.id), method: :post, class: "btn btn-default"
 
 %hr
 
@@ -27,7 +28,7 @@
             .form-group
               .row
                 .col-sm-3
-                  = f.select :rating, [["5 stars", 5], ["4 stars", 4], ["3 stars", 3], ["2 stars", 2], ["1 star", 1]], control_class: "form-control"
+                  = f.select :rating, options_for_select(options_for_video_reviews), control_class: "form-control"
             %br
             .form-group
               .row.col-sm-8

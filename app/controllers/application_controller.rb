@@ -7,8 +7,6 @@ class ApplicationController < ActionController::Base
   end
 
   def require_user
-    @user = current_user if session[:user_id]
-
     unless @user
       flash[:error] = "Access denied. Please create an account or log in."
       redirect_to login_path
@@ -16,12 +14,19 @@ class ApplicationController < ActionController::Base
   end
 
   def current_user
-    User.find(session[:user_id])
+    @user ||= User.find(session[:user_id])
+  end
+
+  def require_same_user
+    unless @user && params[:user_id] == @user.id
+      flash[:error] = "Access denied."
+      redirect_to login_path
+    end
   end
 
   private
 
   def set_user
-    @user ||= User.find(session[:user_id]) if session[:user_id]
+    @user ||= current_user if session[:user_id]
   end
 end

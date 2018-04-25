@@ -13,6 +13,7 @@ class VideosController < ApplicationController
     @video = Video.find(params[:id])
     @reviews = @video.reviews
     @review = Review.new
+    @q_item = QItem.new(user_id: current_user.id, video_id: @video.id, position: nil)
   end
 
   def search
